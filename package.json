@@ -1,0 +1,12 @@
+{
+  "name": "open_finance_br_update_acs",
+  "version": "1.0.0",
+  "description": "Projeto que cria um arquivo .pem de todas as AC's permitidas no ecossistema Open Finance Brasil",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "type": "module"
+}
