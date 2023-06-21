@@ -9,7 +9,7 @@ if (process.argv.length < 3 || !["sandbox", "production"].includes(process.argv[
 }
 
 const environment = process.argv[2];
-const directoryCertificatesUrl = environment == "sandbox" ? "https://data.sandbox.directory.openbankingbrasil.org.br/roots.jwks" : "https://data.directory.openbankingbrasil.org.br/roots.jwks";
+const directoryCertificatesUrl = environment == "sandbox" ? "https://data.sandbox.directory.openbankingbrasil.org.br/roots_directory.jwks" : "https://data.directory.openbankingbrasil.org.br/roots.jwks";
 const fileDestination = process.argv.length == 4 ? process.argv[3] : null;
 
 const certs = [];
