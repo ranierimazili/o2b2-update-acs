@@ -1,0 +1,1 @@
+Neste diretório serão gerados os arquivos cas.pem(lista de CAs permitidas) e crls.pem(lista de certificados revogados)
