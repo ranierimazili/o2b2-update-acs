@@ -9,14 +9,14 @@ Este projeto consulta a API do diretório e cria um arquivo .pem com todas as AC
 node index.js sandbox
 ```
 
-## Para criar o arquivo .pem com as AC's de produção
+## Para criar o arquivo .pem com as AC's e CRL's de produção
 ```
 node index.js production
 ```
 
 ## Arquivos gerados
 Os comandos acima irão criar dois arquivos no diretório certs (cas.pem e crls.pem).
-O arquivo crls.pem só é gerado quando a ambiente informado for *production*.
+O arquivo crls.pem só é gerado quando o ambiente informado for *production*.
 
 * cas.pem - Arquivo que compila todas as Autoridades Certificadoras do Open Finance.
 * crls.pem - Arquivo que compila todas as Listas de Certificados Revogados emitidos pelas AC's do Open Finance.
@@ -25,19 +25,37 @@ O arquivo crls.pem só é gerado quando a ambiente informado for *production*.
 Considerando que você esteja utilizando Nginx como proxy, você pode habilitar a verificação do certificado do cliente (mTLS) com as linhas abaixo em seu nginx.conf.
 
 ```
-ssl_client_certificate /etc/nginx/certs/cas.pem;
+ssl_client_certificate /etc/nginx/cas.pem;
 ssl_verify_client on;
 ```
-*Obs: Considerando que o arquivo gerado em certs/cas.pem deste projeto foi copiado para /etc/nginx/certs/cas.pem.*
+*Obs: Considerando que o arquivo gerado em certs/cas.pem deste projeto foi copiado para /etc/nginx/cas.pem.*
 
 Para habilitar o CRL, você pode configurar o seu nginx.conf com a linha abaixo.
 ```
-ssl_crl /etc/nginx/certs/crls.pem;
+ssl_crl /etc/nginx/crls.pem;
 ```
-*Obs: Considerando que o arquivo gerado em certs/crls.pem deste projeto foi copiado para /etc/nginx/certs/crls.pem.*
+*Obs: Considerando que o arquivo gerado em certs/crls.pem deste projeto foi copiado para /etc/nginx/crls.pem.*
 
 ## Automação
 Como algumas AC's disponibilizam CRLs de curta validade (1 hora), o ideal é que a geração periódica seja inferior a este tempo, afim de garatir que o proxy sempre possua uma lista válida de certificados revogados.
 
-Em um servidor linux, você pode fazer essa automação utilizando o cron.
+Em um servidor linux, você pode fazer essa automação utilizando o script abaixo:
 
+```bash
+#!/bin/bash
+
+UPDATE_ACS_DIR=/root/o2b2-update-acs
+
+cd $UPDATE_ACS_DIR
+node index.js production >> /var/log/o2b2-update-acs.log
+cp -f $UPDATE_ACS_DIR/certs/cas.pem /etc/nginx
+cp -f $UPDATE_ACS_DIR/certs/crls.pem /etc/nginx
+
+nginx -s reload
+```
+*Obs: Edite o valor da variável UPDATE_ACS_DIR, apontando o diretório onde foi realizado o download deste projeto.*
+
+Considerando que o script foi salvo em /root/nginx_automate.sh e você queira atualizar a lista de AC's e lista de certificados revogados a cada 10 minutos, a linha do crontab ficaria como abaixo:
+```
+*/10 * * * * /root/nginx_automate.sh
+```
