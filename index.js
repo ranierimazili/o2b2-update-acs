@@ -25,4 +25,4 @@ jwks.keys.forEach(key => {
     })
 });
 
-await utils.createCerts(certs);
+await utils.createCerts(certs, environment);
