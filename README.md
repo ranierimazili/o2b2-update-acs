@@ -21,6 +21,17 @@ node index.js sandbox
 node index.js production
 ```
 
+Para também gerar os arquivos CRT de cada CA separadamente, você pode usar a opção **--explode**, assim além dos arquivos cas.pem e crls.pem, cada CA terá seu certificado salvo separadamente no diretório _certs_
+
+
+## Para criar o arquivo .pem com as AC's e CRL's de produção e também os certificados de CA individualizados
+
+Para também gerar os arquivos CRT de cada CA separadamente, você pode usar a opção **--explode**, assim além dos arquivos cas.pem e crls.pem, cada CA terá seu certificado salvo separadamente no diretório _certs_
+
+```
+node index.js production --explode
+```
+
 ## Arquivos gerados
 Os comandos acima irão criar dois arquivos no diretório certs (cas.pem e crls.pem).
 O arquivo crls.pem só é gerado quando o ambiente informado for *production*.

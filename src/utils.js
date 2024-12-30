@@ -3,6 +3,8 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 import { crlDownloadAddresses } from "./crlDownloadList.js";
 import fs from 'fs';
 import { X509CRL } from 'jsrsasign';
+//import { ASN1 } from '@lapo/asn1js';
+//import forge from 'node-forge';
 
 //Todo certificado de aplicação de produção (brcac) é emitido por uma AC subordinada a
 //CN=Autoridade Certificadora Raiz Brasileira v10
@@ -17,7 +19,7 @@ export const createCerts = async function (certs, environment) {
 
     for (const cert of certs) {
         pemCAs.push(cert.toString());
-
+        
         if (environment === 'production') {
             //download CRL file - only for production
             const cn = cert.subject.split('\n').filter(e => {return e.startsWith("CN=")})[0].substring(3);
@@ -31,6 +33,7 @@ export const createCerts = async function (certs, environment) {
             }
         }
     }
+    
 
     const now = Date();
     if (pemCAs.length > 0) {
@@ -45,7 +48,16 @@ export const createCerts = async function (certs, environment) {
     }
 }
 
-const saveFile = function(content, filePath) {
+export const cleanCertsFolder = function () {
+    const files = fs.readdirSync('./certs');
+    for (const file of files) {
+        if (file !== 'README.md') {
+            fs.unlinkSync('./certs/' + file);
+        }
+    }
+}
+
+export const saveFile = function(content, filePath) {
     fs.writeFile(filePath, content, (err) => {
         if (err) {
           console.error('Error writing to file:', err);
@@ -54,7 +66,10 @@ const saveFile = function(content, filePath) {
 }
 
 const downloadCRL = async function(url) {
-    const response = await fetch(url);
+    console.log("Downloading CRL from: ", url);
+    
+    const response = await fetch(url, {redirect: 'follow'});
+    
     if (!response.ok) {
         throw new Error(`Failed to download file: ${response.statusText}`);
     }
@@ -85,3 +100,62 @@ const getShortestCRLNextUpdate = function(currentDate, pemCrl) {
     const d = getNextUpdateFromCRL(pemCrl);
     return currentDate == null ? d : d < currentDate ? d : currentDate;
 }
+
+/*const extractCRLURLsFromCertificate = function(certPem) {
+    const cert = forge.pki.certificateFromPem(certPem);
+    console.log(cert.subject);
+    const crlExtension = cert.extensions.find((ext) => ext.name === "cRLDistributionPoints");
+
+    if (!crlExtension) {
+      return [];
+    }
+    
+    const distributionPoints = ASN1.decode(byteStringToBytes(crlExtension.value));
+    console.log(distributionPoints)
+    const output = [];
+    for (var i = 0; i < distributionPoints.sub.length; i++) {
+        var distributionPointData = distributionPoints.sub[i];
+        var distributionPoint = distributionPointData.sub[0];
+        for (var j = 0; j < distributionPoint.sub[0].sub.length; j++) {
+            var name = distributionPoint.sub[0].sub[j];
+            console.log(name.content());
+            output.push(name.content().split('\n')[1]);
+        }
+    }
+
+    return output;
+}*/
+
+/*const byteStringToBytes = function(byteString) {
+    var bytes = [];
+    for (var i = 0; i < byteString.length; i++) {
+        bytes.push(byteString.charCodeAt(i));
+    }
+    return bytes;
+}*/
+
+
+/*function getCrlUrlFromCertificate(certPem) {
+    const cert = forge.pki.certificateFromPem(certPem);
+    const crlExtension = cert.extensions.find((ext) => ext.name === "cRLDistributionPoints");
+  
+    if (!crlExtension) {
+        throw new Error("Extensão cRLDistributionPoints não encontrada no certificado.");
+    }
+    
+    console.log("aqui: ", formatCRLDistributionPoints(crlExtension));
+}*/
+
+/*function formatCRLDistributionPoints(extension) {
+    var distributionPoints = ASN1.decode(byteStringToBytes(extension.value));
+    var output = [];
+    for (var i = 0; i < distributionPoints.sub.length; i++) {
+        var distributionPointData = distributionPoints.sub[i];
+        var distributionPoint = distributionPointData.sub[0];
+        for (var j = 0; j < distributionPoint.sub[0].sub.length; j++) {
+            var name = distributionPoint.sub[0].sub[j];
+            output.push(name.content().split('\n')[1]);
+        }
+    }
+    return output;
+}*/
